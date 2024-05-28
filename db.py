@@ -20,8 +20,8 @@ class SupabaseInterface():
     def __init__(self):
         # Initialize Supabase client upon first instantiation
         if not SupabaseInterface._instance:
-            self.supabase_url ="https://kcavhjwafgtoqkqbbqrd.supabase.co"
-            self.supabase_key ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjYXZoandhZmd0b3FrcWJicXJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTUxMTAxNDEsImV4cCI6MjAxMDY4NjE0MX0.ZaDJgEZ1nSf8EkTD-hSt1FsH7VX-aXYPleJq1g280q0"
+            self.supabase_url =""
+            self.supabase_key =""
             self.client: Client = create_client(self.supabase_url, self.supabase_key, options=client_options)
             SupabaseInterface._instance = self
         else:          
