@@ -60,8 +60,8 @@ def deinfe_issue_data(val,owner,repo,issue_number):
         return {}
        
 
-@app.route('/test')
-async def my_scheduled_job_test():
+@app.route('/my_scheduled_job')
+async def my_scheduled_job():
     # Define the GitHub API endpoint URL
     GITHUB_TOKEN =os.getenv('GITHUB_TOKEN')
     try:                    
@@ -70,7 +70,6 @@ async def my_scheduled_job_test():
         dmp_tickets = db.readAll("dmp_tickets")
 
         for dmp in dmp_tickets:    
-            import pdb;pdb.set_trace()
             url_components = dmp["url"].split('/')
             issue_number = url_components[-1]
             repo = url_components[-3]
@@ -130,7 +129,7 @@ async def my_scheduled_job_test():
 
 @app.before_serving
 async def start_scheduler():
-    scheduler.add_job(my_scheduled_job_test, 'interval', hours=1)
+    scheduler.add_job(my_scheduled_job, 'interval', hours=1)
     scheduler.start()
 
 if __name__ == '__main__':
