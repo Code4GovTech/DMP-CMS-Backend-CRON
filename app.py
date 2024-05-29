@@ -50,8 +50,8 @@ def deinfe_issue_data(val,owner,repo,issue_number):
             "html_body":"",
             "html_url":val['html_url'],
             "comment_id":val['id'],
-            "issue_url":val['issue_url'],
-            "comment_url":val['url'],
+            "issue_url":val['issue_url'] if 'issue_url' in val else val['url'],
+            "comment_url":val['comments_url'] if 'comments_url' in val else val['url'],
             "comment_updated_at":val['updated_at']
         }
         
@@ -67,25 +67,39 @@ async def my_scheduled_job():
     try:                    
         TARGET_DATE =os.getenv('TARGET_DATE')
         db = SupabaseInterface().get_instance()
-        dmp_tickets = db.readAll("dmp_tickets")
+        dmp_tickets = db.readAll("dmp_issues")
 
         for dmp in dmp_tickets:    
-            url_components = dmp["url"].split('/')
+            url_components = dmp["repo_url"].split('/')
             issue_number = url_components[-1]
             repo = url_components[-3]
             owner = url_components[-4]
             
-            GITHUB_API_URL = "https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
-
-            
-            url = GITHUB_API_URL.format(owner=owner, repo=repo, issue_number=issue_number)
-
             # # Make the HTTP request to GitHub API
             headers = {
                 "Accept": "application/vnd.github+json",
                 "Authorization": f"Bearer {GITHUB_TOKEN}",
                 "X-GitHub-Api-Version": "2022-11-28"
             }
+            
+            GITHUB_API_URL = "https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
+            
+            #save first comment of issues
+            GITHUB_COMMENT_URL = "https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
+            comment_url = GITHUB_COMMENT_URL.format(owner=owner, repo=repo, issue_number=issue_number)
+
+            async with httpx.AsyncClient() as client:
+                comment_response = await client.get(comment_url, headers=headers)
+                dmp_data = deinfe_issue_data(comment_response.json(),owner,repo,issue_number)
+                exist = db.client.table('dmp_issue_updates').select("*").eq('dmp_id',dmp_data['dmp_id']).execute()
+                if not exist.data:
+                    add_data = db.add_data(dmp_data,'dmp_issue_updates')
+            
+
+            
+            url = GITHUB_API_URL.format(owner=owner, repo=repo, issue_number=issue_number)
+
+           
             async with httpx.AsyncClient() as client:
                 response = await client.get(url, headers=headers)
 
