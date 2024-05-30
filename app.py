@@ -41,7 +41,7 @@ def define_pr_data(pr_val,issue_number,dmp):
         return {}
     
     
-def deinfe_issue_data(val,owner,repo,issue_number):
+def define_issue_data(val,owner,repo,issue_number):
     try:
         dmp_data = {
             "dmp_id":val['id'],
@@ -93,7 +93,7 @@ async def my_scheduled_job():
 
             async with httpx.AsyncClient() as client:
                 comment_response = await client.get(comment_url, headers=headers)
-                dmp_data = deinfe_issue_data(comment_response.json(),owner,repo,issue_number)
+                dmp_data = define_issue_data(comment_response.json(),owner,repo,issue_number)
                 exist = db.client.table('dmp_issue_updates').select("*").eq('dmp_id',dmp_data['dmp_id']).execute()
                 if not exist.data:
                     add_data = db.add_data(dmp_data,'dmp_issue_updates')
@@ -112,7 +112,7 @@ async def my_scheduled_job():
                     for val in response.json():              
                         pr_created_at = val['created_at']
                         if pr_created_at >= TARGET_DATE or 1==1:   
-                            dmp_data = deinfe_issue_data(val,owner,repo,issue_number)
+                            dmp_data = define_issue_data(val,owner,repo,issue_number)
                             exist = db.client.table('dmp_issue_updates').select("*").eq('dmp_id',dmp_data['dmp_id']).execute()
                             if not exist.data:
                                 add_data = db.add_data(dmp_data,'dmp_issue_updates')
