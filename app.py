@@ -5,6 +5,7 @@ import httpx,os
 from db import SupabaseInterface
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
+from datetime import datetime
 
 # Load environment variables from .env file
 load_dotenv()
@@ -62,6 +63,7 @@ def deinfe_issue_data(val,owner,repo,issue_number):
 
 @app.route('/my_scheduled_job')
 async def my_scheduled_job():
+    print(f"job started --- {datetime.now()}")
     # Define the GitHub API endpoint URL
     GITHUB_TOKEN =os.getenv('GITHUB_TOKEN')
     try:                    
@@ -143,7 +145,7 @@ async def my_scheduled_job():
 
 @app.before_serving
 async def start_scheduler():
-    scheduler.add_job(my_scheduled_job, 'interval', hours=1)
+    scheduler.add_job(my_scheduled_job, 'interval', minutes=2)
     scheduler.start()
 
 if __name__ == '__main__':
