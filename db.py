@@ -45,7 +45,11 @@ class SupabaseInterface():
     def add_data(self, data,table_name):
         data = self.client.table(table_name).insert(data).execute()
         return data.data
-    
+        
+    def update_data(self,data,table_name, match_column, match_value):
+        response = self.client.table(table_name).update(data).eq(match_column, match_value).execute()
+        return response.data
+        
     def add_data_filter(self, data, table_name):
         # Construct the filter based on the provided column names and values
         filter_data = {column: data[column] for column in ['dmp_id','issue_number','owner']}

@@ -115,6 +115,8 @@ async def my_scheduled_job():
                             exist = db.client.table('dmp_issue_updates').select("*").eq('dmp_id',dmp_data['dmp_id']).execute()
                             if not exist.data:
                                 add_data = db.add_data(dmp_data,'dmp_issue_updates')
+                            else:
+                                update_data =db.update_data(dmp_data,'dmp_issue_updates','dmp_id',dmp_data['dmp_id'])
 
             
             #SECOND API CALL
@@ -132,6 +134,9 @@ async def my_scheduled_job():
                             exist_pr = db.client.table('dmp_pr_updates').select("*").eq('pr_id',pr_data['pr_id']).execute()
                             if not exist_pr.data:
                                 add_data = db.add_data(pr_data,'dmp_pr_updates')
+                            else:
+                                add_data = db.update_data(pr_data,'dmp_pr_updates','pr_id',pr_data['pr_id'])
+                                
            
         
         return "success"        
