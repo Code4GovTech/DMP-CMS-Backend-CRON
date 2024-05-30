@@ -29,7 +29,7 @@ def define_pr_data(pr_val,issue_number,dmp):
             "meta_data":pr_val['title'],
             "html_url":pr_val['html_url'],
             "issue_number":issue_number,
-            "url":dmp['url'],
+            "url":dmp['repo_url'],
             "pr_updated_at":pr_val['updated_at'],
             "merged_at":pr_val['merged_at'],
             "closed_at":pr_val['closed_at']
@@ -37,6 +37,7 @@ def define_pr_data(pr_val,issue_number,dmp):
          
         return pr_data
     except Exception as e:
+        print(e)
         return {}
     
     
