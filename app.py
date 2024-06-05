@@ -84,7 +84,7 @@ def define_issue_data(val,owner,repo,issue_number,dmp):
 async def my_scheduled_job():
     print(f"job started --- {datetime.now()}")
     # Define the GitHub API endpoint URL
-    GITHUB_TOKEN =os.getenv('GITHUB_TOKEN')
+    GITHUB_TOKEN =os.getenv('APP_DEV_GITHUB_TOKEN')
     try:                    
         TARGET_DATE =os.getenv('TARGET_DATE')
         db = SupabaseInterface().get_instance()
@@ -172,7 +172,7 @@ async def my_scheduled_job():
 async def dmp_updates():
     print(f"job started --- {datetime.now()}")
     # Define the GitHub API endpoint URL
-    GITHUB_TOKEN =os.getenv('GITHUB_TOKEN')
+    GITHUB_TOKEN =os.getenv('APP_DEV_GITHUB_TOKEN')
     TARGET_DATE =os.getenv('TARGET_DATE')
     headers = {
         "Accept": "application/vnd.github+json",
