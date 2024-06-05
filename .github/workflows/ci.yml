@@ -63,6 +63,8 @@ jobs:
       TAG_ENV_COMMIT: ${{ needs.set_vars.outputs.TAG_ENV_COMMIT }}
       GITHUB_TOKEN: ${{ secrets[format('APP_{0}_GITHUB_TOKEN', needs.set_vars.outputs.APP_ENV)] }}
       TARGET_DATE: ${{ vars[format('APP_{0}_TARGET_DATE', needs.set_vars.outputs.APP_ENV)] }}
+      SUPABASE_KEY: ${{ secrets[format('APP_{0}_SUPABASE_KEY', needs.set_vars.outputs.APP_ENV)] }}
+      SUPABASE_URL: ${{ vars[format('APP_{0}_SUPABASE_URL', needs.set_vars.outputs.APP_ENV)] }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -81,6 +83,9 @@ jobs:
         run: |
           echo "GITHUB_TOKEN=${GITHUB_TOKEN}" >> .env
           echo "TARGET_DATE=${TARGET_DATE}" >> .env
+          echo "SUPABASE_URL=${SUPABASE_URL}" >> .env
+          echo "SUPABASE_KEY=${SUPABASE_KEY}" >> .env
+          
           mv .env ${{ env.DOT_ENV_FILE_NAME }}
 
       - name: Copy env file to DEV Server 
