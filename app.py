@@ -86,7 +86,7 @@ async def my_scheduled_job():
     # Define the GitHub API endpoint URL
     GITHUB_TOKEN =os.getenv('APP_DEV_GITHUB_TOKEN')
     try:                    
-        TARGET_DATE =os.getenv('TARGET_DATE')
+        TARGET_DATE =os.getenv('APP_DEV_TARGET_DATE')
         db = SupabaseInterface().get_instance()
         dmp_tickets = db.readAll("dmp_issues")
 
@@ -173,7 +173,7 @@ async def dmp_updates():
     print(f"job started --- {datetime.now()}")
     # Define the GitHub API endpoint URL
     GITHUB_TOKEN =os.getenv('APP_DEV_GITHUB_TOKEN')
-    TARGET_DATE =os.getenv('TARGET_DATE')
+    TARGET_DATE =os.getenv('APP_DEV_TARGET_DATE')
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -259,8 +259,10 @@ async def dmp_updates():
         return "success"        
                 
     except Exception as e:
+        import traceback
+        error_traceback = traceback.format_exc()
         print(e)
-        return "Server Error"
+        return f"Server Error --{error_traceback}"
         
 
 

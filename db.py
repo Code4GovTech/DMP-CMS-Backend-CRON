@@ -7,8 +7,8 @@ from abc import ABC, abstractmethod
 client_options = ClientOptions(postgrest_client_timeout=None)
 
 
-url: str = os.getenv("SUPABASE_URL")
-key: str = os.getenv("SUPABASE_KEY")
+url: str = os.getenv("APP_DEV_SUPABASE_URL")
+key: str = os.getenv("APP_DEV_SUPABASE_KEY")
 
 
 
