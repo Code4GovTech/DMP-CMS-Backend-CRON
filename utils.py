@@ -1,7 +1,7 @@
 import re,requests
 
 
-def find_mentors(json):
+def find_mentors(json,headers):
     try:
         issue_details = json
         
@@ -25,7 +25,7 @@ def find_mentors(json):
         ment_username = []
         for val in mentors:            
           url = f"{api_base_url}{val[1:]}"
-          username = requests.get(url)
+          username = requests.get(url,headers=headers)
           
           ment_username.append(username.json()['login'])
         return {
