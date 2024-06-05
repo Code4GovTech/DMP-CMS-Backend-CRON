@@ -199,7 +199,7 @@ async def dmp_updates():
                 comment_response = await client.get(comment_url, headers=headers)
                 
                 #find mentors and organization datas                                
-                ment_data = find_mentors(comment_response.json())
+                ment_data = find_mentors(comment_response.json(),headers)
                 org_data = find_org_data(owner,repo,headers)
                 
                 issue_value = comment_response.json()
