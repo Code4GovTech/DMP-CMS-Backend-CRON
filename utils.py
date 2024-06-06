@@ -8,16 +8,25 @@ def find_mentors(json,headers):
         issue_body = issue_details['body']
         pattern = r"## Mentors\s*([\s\S]+?)\s*##"
         disc_pattern = r"## Desc 1\s*([\s\S]+?)\s*##"
-        disc_match = re.search(disc_pattern, issue_body)
+        disc_match = re.search(disc_pattern, issue_body) if issue_body else None
+        
+        #different patter for find description
+        if not disc_match:
+            disc_pattern = r"## Description\s*([\s\S]+?)\s*###"
+            disc_match = re.search(disc_pattern, issue_body) if issue_body else None
         
         disc_text = disc_match.group(1).strip() if disc_match else None
             
-        match = re.search(pattern, issue_body)
-
+        #different pattern for find mentors
+        match = re.search(pattern, issue_body) if issue_body else None
+        if not match:
+            pattern = r"### Mentor\(s\)\s*([\s\S]+?)\s*###"
+            match = re.search(pattern, issue_body) if issue_body else None
+            
         if match:
             mentors_text = match.group(1).strip()
             # Extract individual mentor usernames
-            mentors = [mentor.strip() for mentor in mentors_text.split(',')]
+            mentors = [mentor.strip() for mentor in mentors_text.split(',')]           
         else:
             mentors = []
         api_base_url = "https://api.github.com/users/"
@@ -38,7 +47,8 @@ def find_mentors(json,headers):
             'cont_id':issue_details['user']['id'],
             'cont_name':issue_details['user']['login']
         }
-    except:
+    except Exception as e:
+        print(e)
         return {
             'mentors': [],
             'mentor_usernames': [],
