@@ -49,6 +49,10 @@ class SupabaseInterface():
     def update_data(self,data,table_name, match_column, match_value):
         response = self.client.table(table_name).update(data).eq(match_column, match_value).execute()
         return response.data
+    
+    def multiple_update_data(self,data,table_name, match_column, match_value):
+        response = self.client.table(table_name).update(data).eq(match_column[0], match_value[0]).eq(match_column[1], match_value[1]).execute()
+        return response.data
         
     def add_data_filter(self, data, table_name):
         # Construct the filter based on the provided column names and values
