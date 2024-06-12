@@ -1,13 +1,12 @@
 # app.py
 from quart import Quart, jsonify
-import httpx,os
-
+import httpx,os,re,markdown2
 from db import SupabaseInterface
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from datetime import datetime
 
-from utils import find_mentors, find_org_data
+from utils import find_mentors, find_org_data, find_pr_number, find_week_data
 
 # Load environment variables from .env file
 load_dotenv()
@@ -37,6 +36,7 @@ def define_pr_data(pr_val,issue_number,dmp,owner,repo):
             "closed_at":pr_val['closed_at'],
             "owner":owner,
             "repo":repo
+            # "pr_num":find_pr_number(pr_val['title'])
         }
          
         return pr_data
@@ -207,7 +207,7 @@ async def dmp_updates():
                 issue_value.update(org_data)
                 
               
-                dmp_data = define_issue_data(issue_value,owner,repo,issue_number,dmp)
+                dmp_data = define_issue_data(issue_value,dmp['organisation_name'],repo,issue_number,dmp)
                 #SAVE FIRST COMMENT OF THE ISSUE ONLY HERE
                 exist = db.client.table('dmp_issue_updates').select("*").eq('dmp_id',dmp_data['dmp_id']).execute()
                 if not exist.data:
@@ -223,12 +223,15 @@ async def dmp_updates():
                 # SAVE REMAINING COMMENT OF THE ISSUE BELOW
                 if response.status_code == 200:
                                       
-                    for val in response.json(): 
+                    for index,val in enumerate(response.json()):                         
+                        #update week related task details below                        
+                        find_week_data(val,dmp['repo_url'],dmp['dmp_id']) if index==0 else None          
+            
                         val.update(org_data)   
                         val.update(ment_data)     
                         pr_created_at = val['created_at']
                         if pr_created_at >= TARGET_DATE or 1==1:   
-                            dmp_data = define_issue_data(val,owner,repo,issue_number,dmp)
+                            dmp_data = define_issue_data(val,dmp['organisation_name'],repo,issue_number,dmp)
                                                         
                             exist = db.client.table('dmp_issue_updates').select("*").eq('dmp_id',dmp_data['dmp_id']).execute()
                             if not exist.data:
@@ -243,11 +246,10 @@ async def dmp_updates():
             async with httpx.AsyncClient() as client:
                 pr_response = await client.get(pr_url, headers=headers)
                 if pr_response.status_code == 200:
-                
                     for pr_val in pr_response.json(): 
                         pr_created_at = pr_val['created_at']
                         if (pr_created_at >= TARGET_DATE) or 1==1:                   
-                            pr_data = define_pr_data(pr_val,issue_number,dmp,owner,repo)
+                            pr_data = define_pr_data(pr_val,issue_number,dmp,dmp['organisation_name'],repo)
                             exist_pr = db.client.table('dmp_pr_updates').select("*").eq('pr_id',pr_data['pr_id']).execute()
                             if not exist_pr.data:
                                 add_data = db.add_data(pr_data,'dmp_pr_updates')
