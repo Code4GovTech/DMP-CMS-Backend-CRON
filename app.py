@@ -35,8 +35,8 @@ def define_pr_data(pr_val,issue_number,dmp,owner,repo):
             "merged_at":pr_val['merged_at'],
             "closed_at":pr_val['closed_at'],
             "owner":owner,
-            "repo":repo
-            # "pr_num":find_pr_number(pr_val['title'])
+            "repo":repo,
+            "issue_number_title":find_pr_number(pr_val['title'])
         }
          
         return pr_data
@@ -250,13 +250,15 @@ async def dmp_updates():
                         pr_created_at = pr_val['created_at']
                         if (pr_created_at >= TARGET_DATE) or 1==1:                   
                             pr_data = define_pr_data(pr_val,issue_number,dmp,dmp['organisation_name'],repo)
-                            exist_pr = db.client.table('dmp_pr_updates').select("*").eq('pr_id',pr_data['pr_id']).execute()
-                            if not exist_pr.data:
-                                add_data = db.add_data(pr_data,'dmp_pr_updates')
-                            else:
-                                update_data = db.update_data(pr_data,'dmp_pr_updates','pr_id',pr_data['pr_id'])
+                            
+                            if int(issue_number) == find_pr_number(pr_val['title']) if find_pr_number(pr_val['title']) else 0:                            
                                 
-           
+                                exist_pr = db.client.table('dmp_pr_updates').select("*").eq('pr_id',pr_data['pr_id']).execute()
+                                if not exist_pr.data:
+                                    add_data = db.add_data(pr_data,'dmp_pr_updates')
+                                else:
+                                    update_data = db.update_data(pr_data,'dmp_pr_updates','pr_id',pr_data['pr_id'])
+                                
         
         return "success"        
                 
