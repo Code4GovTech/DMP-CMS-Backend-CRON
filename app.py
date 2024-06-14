@@ -61,8 +61,8 @@ def define_issue_data(val,owner,repo,issue_number,dmp):
             "comment_updated_at":val['updated_at'],
             "mentor_name":val['mentor_usernames'],
             "mentor_id":val['mentors'],
-            "contributor_name":val['cont_name'],
-            "contributor_id":val['cont_id'],
+            "contributor_name":dmp['contributor_name'],
+            "contributor_id":dmp['contributor_name'],
             "title":val['title'],
             "description":val['desc'],
             "html_issue_url":val['html_issue_url'],
@@ -206,7 +206,6 @@ async def dmp_updates():
                 issue_value.update(ment_data)
                 issue_value.update(org_data)
                 
-              
                 dmp_data = define_issue_data(issue_value,dmp['organisation_name'],repo,issue_number,dmp)
                 #SAVE FIRST COMMENT OF THE ISSUE ONLY HERE
                 exist = db.client.table('dmp_issue_updates').select("*").eq('dmp_id',dmp_data['dmp_id']).execute()
