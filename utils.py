@@ -65,22 +65,35 @@ def find_mentors(json,headers):
 
 def find_org_data(owner,repo,headers):
   try:
-       
-    # Fetch repository details to get organization info
-    repo_url = f"https://api.github.com/repos/{owner}/{repo}"
-    repo_response = requests.get(repo_url, headers=headers)
+    
+    org_url = f"https://api.github.com/orgs/{owner}"
+    repo_response = requests.get(org_url, headers=headers)
     repo_data = repo_response.json()
+    
+    #IF NO ORGANITION FOUND EXECUTE IF BLOCK
+    if repo_response.status_code == 404:         
+        # Fetch repository details to get organization info
+        repo_url = f"https://api.github.com/repos/{owner}/{repo}"
+        repo_response = requests.get(repo_url, headers=headers)
+        repo_data = repo_response.json()
+        description = repo_data['description']
+        repo_data = repo_data['owner']
+        
+    else:
+        repo_data = repo_data
+        description = repo_data['description']
+        
     if repo_data:
-        org_name = repo_data['owner']['login']
-        org_id = repo_data['owner']['id']
-        org_link = repo_data['owner']['html_url']
-        org_desc = repo_data['description']
+        org_name = repo_data['login']
+        org_id = repo_data['id']
+        org_link = repo_data['html_url']
+        org_desc = description
     else:
         org_name = None
         org_id = None
         org_link = None
         org_desc = repo_data['description']
-        
+
     return {"org_id":org_id,"org_name":org_name,'org_link':org_link,'org_desc':org_desc}
             
   except Exception as e:

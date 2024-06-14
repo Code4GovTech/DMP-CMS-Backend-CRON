@@ -67,7 +67,7 @@ def define_issue_data(val,owner,repo,issue_number,dmp):
             "description":val['desc'],
             "html_issue_url":val['html_issue_url'],
             "org_id":val['org_id'],
-            "org_name":val['org_name'],
+            "org_name":dmp['organisation_name'],
             "org_link":val['org_link'],
             "dmp_issue_url":dmp['repo_url'],
             "org_description":val['org_desc']
@@ -205,8 +205,7 @@ async def dmp_updates():
                 issue_value = comment_response.json()
                 issue_value.update(ment_data)
                 issue_value.update(org_data)
-                
-                dmp_data = define_issue_data(issue_value,dmp['organisation_name'],repo,issue_number,dmp)
+                dmp_data = define_issue_data(issue_value,owner,repo,issue_number,dmp)
                 #SAVE FIRST COMMENT OF THE ISSUE ONLY HERE
                 exist = db.client.table('dmp_issue_updates').select("*").eq('dmp_id',dmp_data['dmp_id']).execute()
                 if not exist.data:
@@ -230,8 +229,8 @@ async def dmp_updates():
                         val.update(ment_data)     
                         pr_created_at = val['created_at']
                         if pr_created_at >= TARGET_DATE or 1==1:   
-                            dmp_data = define_issue_data(val,dmp['organisation_name'],repo,issue_number,dmp)
-                                                        
+                            dmp_data = define_issue_data(val,owner,repo,issue_number,dmp)
+       
                             exist = db.client.table('dmp_issue_updates').select("*").eq('dmp_id',dmp_data['dmp_id']).execute()
                             if not exist.data:
                                 add_data = db.add_data(dmp_data,'dmp_issue_updates')
