@@ -13,7 +13,7 @@ def parse_issue_description(issue_body):
         if 'Description' in description:
             # Remove description from actual description
             description_index = description.find('Description')
-            description_index = +17
+            description_index = description_index + 11
             description = description[description_index:]
     else:
         description = ''
@@ -37,22 +37,29 @@ def parse_issue_description(issue_body):
 def handle_week_data(comment, issue_url, dmp_id, mentor_name):
     try:
         # Get writer of comment and if it is not the selected mentor, return right away
-        writter = comment['user']['login']
+        writter = "@"+comment['user']['login']
+        print(writter)
+        print(mentor_name)
         if writter != mentor_name:
             return False
 
         plain_text_body = markdown2.markdown(comment['body'])
 
+        print(plain_text_body)
+
         # If weekly goals is not in the body, ignore everything else and return
         if "Weekly Goals" not in plain_text_body:
             return False
 
+        print("Found weekly goals")
+
         db = SupabaseInterface().get_instance()
 
         # find matched from issue body
-        week_matches = re.findall(r'<h2>(Week \d+)</h2>', plain_text_body)
+        # TODO: Fix H3 matching only.
+        week_matches = re.findall(r'<h3>(Week \d+)</h3>', plain_text_body)
         tasks_per_week = re.findall(
-            r'<h2>Week \d+</h2>\s*<ul>(.*?)</ul>', plain_text_body, re.DOTALL)
+            r'<h3>Week \d+</h3>\s*<ul>(.*?)</ul>', plain_text_body, re.DOTALL)
 
         weekly_updates = []
 

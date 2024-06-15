@@ -26,7 +26,7 @@ async def index():
 def define_issue_description_update(val):
     try:
         parsed_body = parse_issue_description(val['body'])
-        ## Get contributor from assignee
+        # Get contributor from assignee
         assignee = val['assignee']
         if assignee is not None:
             contributor = assignee['login']
@@ -98,6 +98,8 @@ async def dmp_updates():
             repo = dmp['repo']
             owner = dmp['dmp_orgs']['name']
 
+            app.logger.info("DMP_ID: "+str(dmp_id))
+
             # # Make the HTTP request to GitHub API
             headers = {
                 "Accept": "application/vnd.github+json",
@@ -121,7 +123,8 @@ async def dmp_updates():
                         issue_update, 'dmp_issues', 'id', dmp_id)
                     app.logger.info(update_data)
                 else:
-                    app.logger.error('Description API failed: ')
+                    app.logger.error("Description API failed: " +
+                                     str(issue_response.status_code) + " for dmp_id: "+str(dmp_id))
 
             # 2. Read & Update comments of the ticket
             GITHUB_COMMENTS_URL = "https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
@@ -145,7 +148,8 @@ async def dmp_updates():
                             comment_update, 'dmp_issue_updates')
                         app.logger.info(upsert_comments)
                 else:
-                    app.logger.error('Comments API failed: ')
+                    app.logger.error("Comments API failed: " +
+                                     str(issue_response.status_code) + " for dmp_id: "+str(dmp_id))
 
             # 3. Read & Update PRs of the ticket
             GITHUB_PR_URL = "https://api.github.com/repos/{owner}/{repo}/pulls"
@@ -164,7 +168,8 @@ async def dmp_updates():
                                 pr_data, 'dmp_pr_updates')
                             app.logger.info(upsert_pr)
                 else:
-                    app.logger.error('PR API failed: ')
+                    app.logger.error("PR API failed: " +
+                                     str(issue_response.status_code) + " for dmp_id: "+str(dmp_id))
         return "success"
     except Exception as e:
         print(e)
