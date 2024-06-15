@@ -26,6 +26,7 @@ async def index():
 def define_issue_description_update(val):
     try:
         parsed_body = parse_issue_description(val['body'])
+        ## Get contributor from assignee
         assignee = val['assignee']
         if assignee is not None:
             contributor = assignee['login']
@@ -87,6 +88,8 @@ async def dmp_updates():
     try:
         TARGET_DATE = os.getenv('TARGET_DATE')
         db = SupabaseInterface().get_instance()
+
+        # Loop through all dmp issues
         dmp_tickets = db.get_dmp_issues()
 
         for dmp in dmp_tickets:
@@ -110,6 +113,7 @@ async def dmp_updates():
             async with httpx.AsyncClient() as client:
                 issue_response = await client.get(description_url, headers=headers)
                 if issue_response.status_code == 200:
+                    # Parse issue discription
                     issue_update = define_issue_description_update(
                         issue_response.json())
                     app.logger.info('Decription from remote: ', issue_update)
@@ -117,8 +121,7 @@ async def dmp_updates():
                         issue_update, 'dmp_issues', 'id', dmp_id)
                     app.logger.info(update_data)
                 else:
-                    app.logger.error('Description API failed: ',
-                                     issue_response.status_code)
+                    app.logger.error('Description API failed: ')
 
             # 2. Read & Update comments of the ticket
             GITHUB_COMMENTS_URL = "https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
@@ -126,13 +129,14 @@ async def dmp_updates():
                 owner=owner, repo=repo, issue_number=issue_number)
             async with httpx.AsyncClient() as client:
                 comments_response = await client.get(comments_url, headers=headers)
-                # Check if the request was successful
                 if comments_response.status_code == 200:
+                    # Loop through comments
                     for val in comments_response.json():
 
+                        # Handle if any of the comments are week data
                         handle_week_data(
                             val, dmp['issue_url'], dmp_id, issue_update['mentor_username'])
-
+                        # Parse comments
                         comment_update = define_issue_update(
                             val, dmp_id=dmp_id)
                         app.logger.info(
@@ -141,8 +145,7 @@ async def dmp_updates():
                             comment_update, 'dmp_issue_updates')
                         app.logger.info(upsert_comments)
                 else:
-                    app.logger.error('Comments API failed: ',
-                                     comments_response.status_code)
+                    app.logger.error('Comments API failed: ')
 
             # 3. Read & Update PRs of the ticket
             GITHUB_PR_URL = "https://api.github.com/repos/{owner}/{repo}/pulls"
@@ -151,6 +154,7 @@ async def dmp_updates():
                 pr_response = await client.get(pr_url, headers=headers)
                 if pr_response.status_code == 200:
                     for pr_val in pr_response.json():
+                        # Select only those prs which have the issue number in ticket
                         if "#"+str(issue_number) not in pr_val['title']:
                             continue
                         pr_created_at = pr_val['created_at']
@@ -160,8 +164,7 @@ async def dmp_updates():
                                 pr_data, 'dmp_pr_updates')
                             app.logger.info(upsert_pr)
                 else:
-                    app.logger.error('PR API failed: ',
-                                     pr_response.status_code)
+                    app.logger.error('PR API failed: ')
         return "success"
     except Exception as e:
         print(e)
@@ -170,7 +173,8 @@ async def dmp_updates():
 
 @app.before_serving
 async def start_scheduler():
-    print("Scheduling dmp_updates_job to run every "+delay_mins+" mins")
+    app.logger.info(
+        "Scheduling dmp_updates_job to run every "+delay_mins+" mins")
     scheduler.add_job(dmp_updates, 'interval', minutes=int(delay_mins))
     scheduler.start()
 

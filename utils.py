@@ -6,19 +6,23 @@ from db import SupabaseInterface
 
 
 def parse_issue_description(issue_body):
+    # Description is everything before goals.
     goals_index = issue_body.find('Goals')
     if goals_index >= 0:
         description = issue_body[:goals_index]
         if 'Description' in description:
+            # Remove description from actual description
             description_index = description.find('Description')
             description_index = +17
             description = description[description_index:]
     else:
         description = ''
+    # Remove all #s from description
     description = description.replace('#', '')
 
     mentor_index = issue_body.find('Mentor')
     if mentor_index >= 0:
+        # Next word after mentor is the mentor name
         mentor_contents = issue_body[mentor_index:].split()
         mentor_name = mentor_contents[1]
     else:
@@ -32,13 +36,14 @@ def parse_issue_description(issue_body):
 # TODO: Optimize
 def handle_week_data(comment, issue_url, dmp_id, mentor_name):
     try:
-
+        # Get writer of comment and if it is not the selected mentor, return right away
         writter = comment['user']['login']
         if writter != mentor_name:
             return False
 
         plain_text_body = markdown2.markdown(comment['body'])
 
+        # If weekly goals is not in the body, ignore everything else and return
         if "Weekly Goals" not in plain_text_body:
             return False
 
@@ -83,6 +88,8 @@ def handle_week_data(comment, issue_url, dmp_id, mentor_name):
                 "task_data": rec['task_html'],
                 "dmp_id": dmp_id
             }
+
+            print(week_json)
 
             exist = db.client.table('dmp_week_updates').select(
                 "*").eq('dmp_id', week_json['dmp_id']).eq('week', week_json['week']).execute()
