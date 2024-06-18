@@ -3,15 +3,14 @@ from typing import Any
 from supabase import create_client, Client
 from supabase.lib.client_options import ClientOptions
 from abc import ABC, abstractmethod
+from dotenv import load_dotenv
+
+load_dotenv()
 
 client_options = ClientOptions(postgrest_client_timeout=None)
 
-
 url: str = os.getenv("SUPABASE_URL")
 key: str = os.getenv("SUPABASE_KEY")
-
-
-
 
 class SupabaseInterface():
     
@@ -53,6 +52,10 @@ class SupabaseInterface():
     def multiple_update_data(self,data,table_name, match_column, match_value):
         response = self.client.table(table_name).update(data).eq(match_column[0], match_value[0]).eq(match_column[1], match_value[1]).execute()
         return response.data
+    
+    def upsert_data(self,data,table_name):
+        response = self.client.table(table_name).upsert(data).execute()
+        return response.data
         
     def add_data_filter(self, data, table_name):
         # Construct the filter based on the provided column names and values
@@ -68,3 +71,7 @@ class SupabaseInterface():
         # If the data doesn't exist, insert it into the table
         new_data = self.client.table(table_name).insert(data).execute()
         return new_data.data
+    
+    def get_dmp_issues(self):
+        response = self.client.table('dmp_issues').select('*, dmp_orgs(*)').execute()
+        return response.data

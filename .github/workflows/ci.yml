@@ -65,6 +65,7 @@ jobs:
       TARGET_DATE: ${{ vars[format('APP_{0}_TARGET_DATE', needs.set_vars.outputs.APP_ENV)] }}
       SUPABASE_KEY: ${{ secrets[format('APP_{0}_SUPABASE_KEY', needs.set_vars.outputs.APP_ENV)] }}
       SUPABASE_URL: ${{ vars[format('APP_{0}_SUPABASE_URL', needs.set_vars.outputs.APP_ENV)] }}
+      SCHEDULER_DELAY_IN_MINS: ${{ vars[format('APP_{0}_SCHEDULER_DELAY_IN_MINS', needs.set_vars.outputs.APP_ENV)] }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -85,6 +86,7 @@ jobs:
           echo "TARGET_DATE=${TARGET_DATE}" >> .env
           echo "SUPABASE_URL=${SUPABASE_URL}" >> .env
           echo "SUPABASE_KEY=${SUPABASE_KEY}" >> .env
+          echo "SCHEDULER_DELAY_IN_MINS=${SCHEDULER_DELAY_IN_MINS}" >> .env
           
           mv .env ${{ env.DOT_ENV_FILE_NAME }}
 
