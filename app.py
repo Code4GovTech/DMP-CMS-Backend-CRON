@@ -52,7 +52,8 @@ def define_issue_update(val, dmp_id):
             "comment_id": val['id'],
             "comment_updated_at": val['updated_at'],
             "comment_link": val['html_url'],
-            "comment_api": val['comments_url'] if 'comments_url' in val else val['url']
+            "comment_api": val['comments_url'] if 'comments_url' in val else val['url'],
+            "created_by": val['user']['login']
         }
         return issue_update
     except Exception as e:

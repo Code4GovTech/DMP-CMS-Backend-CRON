@@ -38,20 +38,14 @@ def handle_week_data(comment, issue_url, dmp_id, mentor_name):
     try:
         # Get writer of comment and if it is not the selected mentor, return right away
         writter = "@"+comment['user']['login']
-        print(writter)
-        print(mentor_name)
         if writter != mentor_name:
             return False
 
         plain_text_body = markdown2.markdown(comment['body'])
 
-        print(plain_text_body)
-
         # If weekly goals is not in the body, ignore everything else and return
         if "Weekly Goals" not in plain_text_body:
             return False
-
-        print("Found weekly goals")
 
         db = SupabaseInterface().get_instance()
 
@@ -95,8 +89,6 @@ def handle_week_data(comment, issue_url, dmp_id, mentor_name):
                 "task_data": rec['task_html'],
                 "dmp_id": dmp_id
             }
-
-            print(week_json)
 
             exist = db.client.table('dmp_week_updates').select(
                 "*").eq('dmp_id', week_json['dmp_id']).eq('week', week_json['week']).execute()
