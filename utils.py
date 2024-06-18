@@ -36,9 +36,9 @@ def parse_issue_description(issue_body):
 def handle_week_data(comment, issue_url, dmp_id, mentor_name):
     try:
         # Get writer of comment and if it is not the selected mentor, return right away
-        writter = "@"+comment['user']['login']
-        if writter != mentor_name:
-            return False
+        # writter = "@"+comment['user']['login']
+        # if writter != mentor_name:
+        #     return False
 
         plain_text_body = markdown2.markdown(comment['body'])
 
