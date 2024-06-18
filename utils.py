@@ -33,7 +33,6 @@ def parse_issue_description(issue_body):
     }
 
 
-# TODO: Optimize
 def handle_week_data(comment, issue_url, dmp_id, mentor_name):
     try:
         # Get writer of comment and if it is not the selected mentor, return right away
@@ -50,12 +49,12 @@ def handle_week_data(comment, issue_url, dmp_id, mentor_name):
         db = SupabaseInterface().get_instance()
 
         # find matched from issue body
-        # TODO: Fix H3 matching only.
         week_matches = re.findall(r'<h3>(Week \d+)</h3>', plain_text_body)
-        tasks_per_week = re.findall(
-            r'<h3>Week \d+</h3>\s*<ul>(.*?)</ul>', plain_text_body, re.DOTALL)
-
+      
         weekly_updates = []
+        # Take content after index 0 (first one is a heading)
+        tasks_per_week = re.split(r'(<.*?>Week \d+<.*?>)', plain_text_body)[1:]
+        tasks_per_week = [tasks_per_week[i] for i in range(1, len(tasks_per_week), 2)]
 
         for i, week in enumerate(week_matches):
             task_list_html = tasks_per_week[i]
@@ -78,6 +77,7 @@ def handle_week_data(comment, issue_url, dmp_id, mentor_name):
                 'progress': avg,
                 'tasks': task_list
             })
+            
 
         for rec in weekly_updates:
             week_json = {
