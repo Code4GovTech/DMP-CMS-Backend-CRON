@@ -1,7 +1,7 @@
 # app.py
 from quart import Quart
 import httpx
-import os
+import os,markdown2
 from db import SupabaseInterface
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
@@ -138,12 +138,14 @@ async def dmp_updates():
             async with httpx.AsyncClient() as client:
                 comments_response = await client.get(comments_url, headers=headers)
                 if comments_response.status_code == 200:
+                    week_update_status = False
                     # Loop through comments
                     for val in comments_response.json():
-
-                        # Handle if any of the comments are week data
-                        handle_week_data(
-                            val, dmp['issue_url'], dmp_id, issue_update['mentor_username'])
+                        # Handle if any of the comments are week data                        
+                        plain_text_body = markdown2.markdown(val['body'])
+                        if "Weekly Goals" in plain_text_body and not week_update_status:
+                            week_update_status = handle_week_data(val, dmp['issue_url'], dmp_id, issue_update['mentor_username'])
+                        
                         # Parse comments
                         comment_update = define_issue_update(
                             val, dmp_id=dmp_id)
