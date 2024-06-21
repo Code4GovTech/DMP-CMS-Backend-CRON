@@ -97,7 +97,7 @@ async def dmp_updates():
             dmp_id = dmp['id']
             issue_number = dmp['issue_number']
             repo = dmp['repo']
-            owner = dmp['dmp_orgs']['name']
+            owner = dmp['dmp_orgs']['repo_owner']
 
             app.logger.info("DMP_ID: "+str(dmp_id))
 
@@ -110,9 +110,10 @@ async def dmp_updates():
 
             # 1. Read & Update Description of the ticket
             GITHUB_ISSUE_URL = "https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
+            print(dmp_id)
             description_url = GITHUB_ISSUE_URL.format(
                 owner=owner, repo=repo, issue_number=issue_number)
-
+            print(description_url)
             async with httpx.AsyncClient() as client:
                 issue_response = await client.get(description_url, headers=headers)
                 if issue_response.status_code == 200:
