@@ -110,10 +110,8 @@ async def dmp_updates():
 
             # 1. Read & Update Description of the ticket
             GITHUB_ISSUE_URL = "https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
-            print(dmp_id)
             description_url = GITHUB_ISSUE_URL.format(
                 owner=owner, repo=repo, issue_number=issue_number)
-            print(description_url)
             async with httpx.AsyncClient() as client:
                 issue_response = await client.get(description_url, headers=headers)
                 if issue_response.status_code == 200:
