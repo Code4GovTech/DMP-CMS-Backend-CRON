@@ -119,8 +119,9 @@ async def dmp_updates():
                     issue_update = define_issue_description_update(
                         issue_response.json())
                     
-                    issue_update['mentor_username'] = dmp['mentor_username']  #get from db
-                    issue_update['contributor_username'] = dmp['contributor_username'] #get from db
+                    issue_update['mentor_username'] = dmp['mentor_username'] if dmp['mentor_username'] else issue_update['mentor_username']#get from db
+                    issue_update['contributor_username'] = dmp['contributor_username'] if dmp['contributor_username'] else issue_update['contributor_username'] #get from db
+                   
                     
                     app.logger.info('Decription from remote: ', issue_update)
                     update_data = db.update_data(
