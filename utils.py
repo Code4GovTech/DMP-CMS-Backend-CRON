@@ -49,7 +49,7 @@ def handle_week_data(comment, issue_url, dmp_id, mentor_name):
         db = SupabaseInterface().get_instance()
 
         # find matched from issue body
-        week_matches = re.findall(r'<h3>(Week \d+)</h3>', plain_text_body)
+        week_matches = re.findall(r'(<.*?>Week \d+<.*?>)', plain_text_body)
       
         weekly_updates = []
         # Take content after index 0 (first one is a heading)

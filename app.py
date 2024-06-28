@@ -165,7 +165,7 @@ async def dmp_updates():
                 if pr_response.status_code == 200:
                     for pr_val in pr_response.json():
                         # Select only those prs which have the issue number in ticket
-                        if "#"+str(issue_number) not in pr_val['title']:
+                        if str(issue_number) not in pr_val['title']:
                             continue
                         pr_created_at = pr_val['created_at']
                         if (pr_created_at >= TARGET_DATE) or 1 == 1:
