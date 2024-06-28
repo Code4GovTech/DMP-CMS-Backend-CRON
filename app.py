@@ -168,7 +168,7 @@ async def dmp_updates():
                         if str(issue_number) not in pr_val['title']:
                             continue
                         pr_created_at = pr_val['created_at']
-                        if (pr_created_at >= TARGET_DATE) or 1 == 1:
+                        if (pr_created_at >= TARGET_DATE):
                             pr_data = define_pr_update(pr_val, dmp_id)
                             upsert_pr = db.upsert_data(
                                 pr_data, 'dmp_pr_updates')
