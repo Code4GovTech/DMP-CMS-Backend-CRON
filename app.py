@@ -171,7 +171,7 @@ async def dmp_updates():
                         if (pr_created_at >= TARGET_DATE):
                             pr_data = define_pr_update(pr_val, dmp_id)
                             upsert_pr = db.upsert_data(
-                                pr_data, 'dmp_pr_updates') 
+                                pr_data, 'dmp_pr_updates')
                             app.logger.info(upsert_pr)
                 else:
                     app.logger.error("PR API failed: " +
