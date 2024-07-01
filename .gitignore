@@ -1,0 +1,11 @@
+#all files relating to python vitual env
+/.env
+#environment variables and cache
+.env
+*.pem
+*.pyc
+*/__pycache__/*
+
+/__pycache__
+env/*
+
