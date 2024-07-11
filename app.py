@@ -131,31 +131,41 @@ async def dmp_updates():
                                      str(issue_response.status_code) + " for dmp_id: "+str(dmp_id))
 
             # 2. Read & Update comments of the ticket
-            GITHUB_COMMENTS_URL = "https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
-            comments_url = GITHUB_COMMENTS_URL.format(
-                owner=owner, repo=repo, issue_number=issue_number)
-            async with httpx.AsyncClient() as client:
-                comments_response = await client.get(comments_url, headers=headers)
-                if comments_response.status_code == 200:
-                    week_update_status = False
-                    # Loop through comments
-                    for val in comments_response.json():
-                        # Handle if any of the comments are week data                        
-                        plain_text_body = markdown2.markdown(val['body'])
-                        if "Weekly Goals" in plain_text_body and not week_update_status:
-                            week_update_status = handle_week_data(val, dmp['issue_url'], dmp_id, issue_update['mentor_username'])
-                        
-                        # Parse comments
-                        comment_update = define_issue_update(
-                            val, dmp_id=dmp_id)
-                        app.logger.info(
-                            'Comment from remote: ', comment_update)
-                        upsert_comments = db.upsert_data(
-                            comment_update, 'dmp_issue_updates')
-                        app.logger.info(upsert_comments)
-                else:
-                    app.logger.error("Comments API failed: " +
-                                     str(issue_response.status_code) + " for dmp_id: "+str(dmp_id))
+            page = 1
+            while True:
+                GITHUB_COMMENTS_URL = "https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments?page={page}"
+                comments_url = GITHUB_COMMENTS_URL.format(
+                    owner=owner, repo=repo, issue_number=issue_number, page=page)
+                async with httpx.AsyncClient() as client:
+                    comments_response = await client.get(comments_url, headers=headers)
+                    if comments_response.status_code == 200:
+                        week_update_status = False
+                        week_learning_status = False
+                        # Loop through comments
+                        comments_array = comments_response.json()
+                        if comments_array == [] or len(comments_array)==0:
+                            break
+                        for val in comments_response.json():
+                            # Handle if any of the comments are week data                        
+                            plain_text_body = markdown2.markdown(val['body'])
+                            if "Weekly Goals" in plain_text_body and not week_update_status:
+                                week_update_status = handle_week_data(val, dmp['issue_url'], dmp_id, issue_update['mentor_username'])
+                            
+                            if "Weekly Learnings" in plain_text_body and not week_learning_status:
+                                week_learning_status = handle_week_data(val, dmp['issue_url'], dmp_id, issue_update['mentor_username'])
+                            
+                            # Parse comments
+                            comment_update = define_issue_update(
+                                val, dmp_id=dmp_id)
+                            app.logger.info(
+                                'Comment from remote: ', comment_update)
+                            upsert_comments = db.upsert_data(
+                                comment_update, 'dmp_issue_updates')
+                            app.logger.info(upsert_comments)
+                    else:
+                        app.logger.error("Comments API failed: " +
+                                        str(issue_response.status_code) + " for dmp_id: "+str(dmp_id))
+                page = page + 1
 
             # 3. Read & Update PRs of the ticket
             GITHUB_PR_URL = "https://api.github.com/repos/{owner}/{repo}/pulls"
