@@ -143,8 +143,6 @@ async def dmp_updates():
                         week_learning_status = False
                         # Loop through comments
                         comments_array = comments_response.json()
-                        print(comments_array)
-                        print(len(comments_array))
                         if comments_array == [] or len(comments_array)==0:
                             break
                         for val in comments_response.json():
