@@ -95,7 +95,6 @@ async def dmp_updates():
 
         for dmp in dmp_tickets:
             dmp_id = dmp['id']
-            print('processing  dmp_id ', dmp_id)
             issue_number = dmp['issue_number']
             repo = dmp['repo']
             owner = dmp['dmp_orgs']['repo_owner']
