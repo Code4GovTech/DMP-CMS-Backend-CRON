@@ -43,7 +43,7 @@ def handle_week_data(comment, issue_url, dmp_id, mentor_name):
         plain_text_body = markdown2.markdown(comment['body'])
 
         # If weekly goals is not in the body, ignore everything else and return
-        if "Weekly Goals" not in plain_text_body:
+        if "Weekly Goals" not in plain_text_body and "Weekly Learnings" not in plain_text_body:
             return False
 
         db = SupabaseInterface().get_instance()
