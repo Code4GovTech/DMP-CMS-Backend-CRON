@@ -174,7 +174,7 @@ async def dmp_updates():
                 page = page + 1
 
             # 3. Read & Update PRs of the ticket
-            GITHUB_PR_URL = "https://api.github.com/repos/{owner}/{repo}/pulls"
+            GITHUB_PR_URL = "https://api.github.com/repos/{owner}/{repo}/pulls?state=all"
             pr_url = GITHUB_PR_URL.format(owner=owner, repo=repo)
             async with httpx.AsyncClient() as client:
                 pr_response = await client.get(pr_url, headers=headers)
