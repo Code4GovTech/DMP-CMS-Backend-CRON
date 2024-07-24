@@ -171,6 +171,7 @@ async def dmp_updates():
                         print('issue response ', issue_response)
                         app.logger.error("Comments API failed: " +
                                         str(issue_response.status_code) + " for dmp_id: "+str(dmp_id))
+                        break
                 page = page + 1
 
             # 3. Read & Update PRs of the ticket
