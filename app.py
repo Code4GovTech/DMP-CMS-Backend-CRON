@@ -95,6 +95,7 @@ async def dmp_updates():
 
         for dmp in dmp_tickets:
             dmp_id = dmp['id']
+            print('processing dmp ids ', dmp_id)
             issue_number = dmp['issue_number']
             repo = dmp['repo']
             owner = dmp['dmp_orgs']['repo_owner']
@@ -110,14 +111,15 @@ async def dmp_updates():
 
             # 1. Read & Update Description of the ticket
             GITHUB_ISSUE_URL = "https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
+            # GITHUB_ISSUE_URL = "https://api.github.com/repos/a2i-code-For-Govstack/Doptor-organogram-builder/issues/1"
             description_url = GITHUB_ISSUE_URL.format(
                 owner=owner, repo=repo, issue_number=issue_number)
             async with httpx.AsyncClient() as client:
                 issue_response = await client.get(description_url, headers=headers)
                 if issue_response.status_code == 200:
                     # Parse issue discription
-                    issue_update = define_issue_description_update(
-                        issue_response.json())
+                    print('processing description ')
+                    issue_update = define_issue_description_update(issue_response.json())
                     
                     issue_update['mentor_username'] = dmp['mentor_username']  #get from db
                     issue_update['contributor_username'] = dmp['contributor_username'] #get from db
@@ -127,6 +129,7 @@ async def dmp_updates():
                         issue_update, 'dmp_issues', 'id', dmp_id)
                     app.logger.info(update_data)
                 else:
+                    print('issue response ', issue_response)
                     app.logger.error("Description API failed: " +
                                      str(issue_response.status_code) + " for dmp_id: "+str(dmp_id))
 
@@ -134,11 +137,13 @@ async def dmp_updates():
             page = 1
             while True:
                 GITHUB_COMMENTS_URL = "https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments?page={page}"
+                # GITHUB_COMMENTS_URL = "https://github.com/a2i-code-For-Govstack/Doptor-organogram-builder/issues/1/comments?page={page}"
                 comments_url = GITHUB_COMMENTS_URL.format(
                     owner=owner, repo=repo, issue_number=issue_number, page=page)
                 async with httpx.AsyncClient() as client:
                     comments_response = await client.get(comments_url, headers=headers)
                     if comments_response.status_code == 200:
+                        print('processing comments ')
                         week_update_status = False
                         week_learning_status = False
                         # Loop through comments
@@ -163,8 +168,10 @@ async def dmp_updates():
                                 comment_update, 'dmp_issue_updates')
                             app.logger.info(upsert_comments)
                     else:
+                        print('issue response ', issue_response)
                         app.logger.error("Comments API failed: " +
                                         str(issue_response.status_code) + " for dmp_id: "+str(dmp_id))
+                        break
                 page = page + 1
 
             # 3. Read & Update PRs of the ticket
@@ -173,6 +180,7 @@ async def dmp_updates():
             async with httpx.AsyncClient() as client:
                 pr_response = await client.get(pr_url, headers=headers)
                 if pr_response.status_code == 200:
+                    print('processing prs ')
                     for pr_val in pr_response.json():
                         # Select only those prs which have the issue number in ticket
                         if str(issue_number) not in pr_val['title']:
@@ -184,6 +192,7 @@ async def dmp_updates():
                                 pr_data, 'dmp_pr_updates')
                             app.logger.info(upsert_pr)
                 else:
+                    print('issue response ', issue_response)
                     app.logger.error("PR API failed: " +
                                      str(issue_response.status_code) + " for dmp_id: "+str(dmp_id))
         return "success"
