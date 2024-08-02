@@ -3,7 +3,7 @@ import requests
 import logging
 import markdown2
 from db import SupabaseInterface
-
+from query import PostgresQuery
 
 def parse_issue_description(issue_body):
     # Description is everything before goals.
@@ -92,18 +92,22 @@ def handle_week_data(comment, issue_url, dmp_id, mentor_name):
 
             exist = db.client.table('dmp_week_updates').select(
                 "*").eq('dmp_id', week_json['dmp_id']).eq('week', week_json['week']).execute()
+            
+            exist = PostgresQuery.check_week_exist(week_json['dmp_id'],week_json['week'])
 
-            if not exist.data:
-                add_data = db.add_data(week_json, 'dmp_week_updates')
+            if not exist:
+                # add_data = db.add_data(week_json, 'dmp_week_updates')
+                add_data = PostgresQuery.upsert_data(week_json, 'dmp_week_updates', 'dmp_id')
+
             else:
-                update_data = db.multiple_update_data(week_json, 'dmp_week_updates', [
-                                                      'dmp_id', 'week'], [week_json['dmp_id'], week_json['week']])
+                # update_data = db.multiple_update_data(week_json, 'dmp_week_updates', ['dmp_id', 'week'], [week_json['dmp_id'], week_json['week']])
+                update_data = PostgresQuery.multiple_update_data(week_json, 'dmp_week_updates', ['dmp_id', 'week'], [week_json['dmp_id'], week_json['week']])
 
             week_json = {}
 
         return True
 
     except Exception as e:
-        print(e)
+        print(f"Error in week data updates {dmp_id}")
         logging.info(f"{e} - find_week_data")
         return False

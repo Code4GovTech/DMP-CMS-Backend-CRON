@@ -15,9 +15,14 @@ class CustomTestResult(unittest.TextTestResult):
         super().addSuccess(test)
         print(f"{test._testMethodName} - passed")
 
-
 class CustomTestRunner(unittest.TextTestRunner):
     resultclass = CustomTestResult
+
+    def run(self, test):
+        result = super().run(test)
+        if result.wasSuccessful():
+            print("All Testcases Passed")
+        return result
     
 class TestDMPUpdates(unittest.IsolatedAsyncioTestCase):
     

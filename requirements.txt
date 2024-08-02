@@ -5,3 +5,5 @@ Quart==0.19.5
 supabase==2.4.5
 requests==2.32.3
 markdown2==2.4.13
+postgrest==0.16.4
+psycopg2-binary==2.9.9

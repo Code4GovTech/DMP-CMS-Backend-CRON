@@ -6,6 +6,7 @@ from db import SupabaseInterface
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from datetime import datetime
+from query import PostgresQuery
 
 from utils import handle_week_data, parse_issue_description
 
@@ -88,13 +89,13 @@ async def dmp_updates():
     GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
     try:
         TARGET_DATE = os.getenv('TARGET_DATE')
-        db = SupabaseInterface().get_instance()
 
         # Loop through all dmp issues
-        dmp_tickets = db.get_dmp_issues()
+        dmp_tickets = PostgresQuery.get_all_dmp_issues()
+
 
         for dmp in dmp_tickets:
-            dmp_id = dmp['id']
+            dmp_id = dmp['id']            
             print('processing dmp ids ', dmp_id)
             issue_number = dmp['issue_number']
             repo = dmp['repo']
@@ -125,8 +126,10 @@ async def dmp_updates():
                     issue_update['contributor_username'] = dmp['contributor_username'] #get from db
                     
                     app.logger.info('Decription from remote: ', issue_update)
-                    update_data = db.update_data(
-                        issue_update, 'dmp_issues', 'id', dmp_id)
+                    
+                    update_data = PostgresQuery.update_data(issue_update, 'dmp_issues', 'id', dmp_id)
+                                       
+                    print(f"dmp_issue update works - dmp_id  {dmp_id}") if update_data else print(f"dmp_issue update failed - dmp_id {dmp_id}")
                     app.logger.info(update_data)
                 else:
                     print('issue response ', issue_response)
@@ -151,7 +154,7 @@ async def dmp_updates():
                         if comments_array == [] or len(comments_array)==0:
                             break
                         for val in comments_response.json():
-                            # Handle if any of the comments are week data                        
+                            # Handle if any of the comments are week data            
                             plain_text_body = markdown2.markdown(val['body'])
                             if "Weekly Goals" in plain_text_body and not week_update_status:
                                 week_update_status = handle_week_data(val, dmp['issue_url'], dmp_id, issue_update['mentor_username'])
@@ -160,12 +163,16 @@ async def dmp_updates():
                                 week_learning_status = handle_week_data(val, dmp['issue_url'], dmp_id, issue_update['mentor_username'])
                             
                             # Parse comments
-                            comment_update = define_issue_update(
-                                val, dmp_id=dmp_id)
-                            app.logger.info(
-                                'Comment from remote: ', comment_update)
-                            upsert_comments = db.upsert_data(
-                                comment_update, 'dmp_issue_updates')
+                            comment_update = define_issue_update(val, dmp_id=dmp_id)
+                            app.logger.info('Comment from remote: ', comment_update)
+                            
+                            #get created_at                            
+                            created_timestamp =  PostgresQuery.get_timestamp('dmp_issue_updates','created_at','comment_id',comment_update['comment_id'])
+                            comment_update['created_at'] = datetime.utcnow() if not created_timestamp else created_timestamp
+                            comment_update['comment_updated_at'] = datetime.utcnow()
+                            
+                            upsert_comments = PostgresQuery.upsert_data(comment_update, 'dmp_issue_updates', 'comment_id')
+                            print(f"dmp_issue_updates works dmp_id - {dmp_id}") if upsert_comments else print(f"comment failed dmp_id - {dmp_id}")
                             app.logger.info(upsert_comments)
                     else:
                         print('issue response ', issue_response)
@@ -188,8 +195,12 @@ async def dmp_updates():
                         pr_created_at = pr_val['created_at']
                         if (pr_created_at >= TARGET_DATE):
                             pr_data = define_pr_update(pr_val, dmp_id)
-                            upsert_pr = db.upsert_data(
-                                pr_data, 'dmp_pr_updates')
+                            
+                            created_timestamp =  PostgresQuery.get_timestamp('dmp_pr_updates','created_at','pr_id',pr_data['pr_id'])
+                            pr_data['created_at'] = datetime.utcnow() if not created_timestamp else created_timestamp
+                            
+                            upsert_pr = PostgresQuery.upsert_data(pr_data, 'dmp_pr_updates', 'pr_id')
+                            print(f"dmp_pr_updates works - dmp_id is {dmp_id}") if upsert_pr else print(f"dmp_pr_updates failed - dmp_id is {dmp_id}")
                             app.logger.info(upsert_pr)
                 else:
                     print('issue response ', issue_response)
