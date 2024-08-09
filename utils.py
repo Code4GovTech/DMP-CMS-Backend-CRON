@@ -2,7 +2,7 @@ import re
 import requests
 import logging
 import markdown2
-from query import PostgresQuery,PostgresORM
+from query import PostgresORM
 
 def parse_issue_description(issue_body):
     # Description is everything before goals.

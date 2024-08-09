@@ -4,7 +4,7 @@ import os,markdown2,httpx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from datetime import datetime,timezone
-from query import PostgresQuery,PostgresORM
+from query import PostgresORM
 from utils import handle_week_data, parse_issue_description
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
@@ -181,7 +181,7 @@ async def dmp_updates():
                             app.logger.info('Comment from remote: ', comment_update)
                             
                             #get created_at                 
-                            created_timestamp =  PostgresQuery.get_timestamp('dmp_issue_updates','created_at','comment_id',comment_update['comment_id'])
+                            created_timestamp = await PostgresORM.get_timestamp(async_session, DmpIssueUpdate, 'created_at', 'comment_id', comment_update['comment_id'])
                             comment_update['created_at'] = datetime.utcnow() if not created_timestamp else created_timestamp
                             comment_update['comment_updated_at'] = datetime.utcnow().replace(tzinfo=None)
                             comment_update['created_at']  = comment_update['created_at'].replace(tzinfo=None)
