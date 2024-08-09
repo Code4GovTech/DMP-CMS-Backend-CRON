@@ -7,3 +7,4 @@ markdown2==2.4.13
 postgrest==0.16.4
 psycopg2-binary==2.9.9
 SQLAlchemy==2.0.32
+asyncpg==0.29.0
