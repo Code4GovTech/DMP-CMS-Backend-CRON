@@ -1,20 +1,33 @@
 # app.py
 from quart import Quart
-import httpx
-import os,markdown2
+import os,markdown2,httpx
 from db import SupabaseInterface
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
-from datetime import datetime
-from query import PostgresQuery
-
+from datetime import datetime,timezone
+from query import PostgresQuery,PostgresORM
 from utils import handle_week_data, parse_issue_description
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from datetime import datetime
+from models import *
+
+
+
 
 # Load environment variables from .env file
 load_dotenv()
 delay_mins: str = os.getenv("SCHEDULER_DELAY_IN_MINS")
+ 
 
 app = Quart(__name__)
+
+# Initialize Quart app
+app.config['SQLALCHEMY_DATABASE_URI'] = PostgresORM.get_postgres_uri()
+
+# Initialize Async SQLAlchemy
+engine = create_async_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
+async_session = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
 
 scheduler = AsyncIOScheduler()
 
@@ -82,6 +95,8 @@ def define_pr_update(pr_val, dmp_id):
         return {}
 
 
+
+
 @app.route('/dmp_updates')
 async def dmp_updates():
     print(
@@ -91,9 +106,8 @@ async def dmp_updates():
         TARGET_DATE = os.getenv('TARGET_DATE')
 
         # Loop through all dmp issues
-        dmp_tickets = PostgresQuery.get_all_dmp_issues()
-
-
+        dmp_tickets = await PostgresORM.get_all_dmp_issues(async_session)
+        
         for dmp in dmp_tickets:
             dmp_id = dmp['id']            
             print('processing dmp ids ', dmp_id)
@@ -127,8 +141,8 @@ async def dmp_updates():
                     
                     app.logger.info('Decription from remote: ', issue_update)
                     
-                    update_data = PostgresQuery.update_data(issue_update, 'dmp_issues', 'id', dmp_id)
-                                       
+                    update_data = await PostgresORM.update_dmp_issue(async_session,issue_id=dmp_id, update_data=issue_update)
+
                     print(f"dmp_issue update works - dmp_id  {dmp_id}") if update_data else print(f"dmp_issue update failed - dmp_id {dmp_id}")
                     app.logger.info(update_data)
                 else:
@@ -157,10 +171,10 @@ async def dmp_updates():
                             # Handle if any of the comments are week data            
                             plain_text_body = markdown2.markdown(val['body'])
                             if "Weekly Goals" in plain_text_body and not week_update_status:
-                                week_update_status = handle_week_data(val, dmp['issue_url'], dmp_id, issue_update['mentor_username'])
+                                week_update_status = await handle_week_data(val, dmp['issue_url'], dmp_id, issue_update['mentor_username'],async_session)
                             
                             if "Weekly Learnings" in plain_text_body and not week_learning_status:
-                                week_learning_status = handle_week_data(val, dmp['issue_url'], dmp_id, issue_update['mentor_username'])
+                                week_learning_status = await handle_week_data(val, dmp['issue_url'], dmp_id, issue_update['mentor_username'],async_session)
                             
                             # Parse comments
                             comment_update = define_issue_update(val, dmp_id=dmp_id)
@@ -169,9 +183,11 @@ async def dmp_updates():
                             #get created_at                            
                             created_timestamp =  PostgresQuery.get_timestamp('dmp_issue_updates','created_at','comment_id',comment_update['comment_id'])
                             comment_update['created_at'] = datetime.utcnow() if not created_timestamp else created_timestamp
-                            comment_update['comment_updated_at'] = datetime.utcnow()
-                            
-                            upsert_comments = PostgresQuery.upsert_data(comment_update, 'dmp_issue_updates', 'comment_id')
+                            comment_update['comment_updated_at'] = datetime.utcnow().replace(tzinfo=None)
+                            comment_update['created_at']  = comment_update['created_at'].replace(tzinfo=None)
+                                                       
+                            upsert_comments = await PostgresORM.upsert_data_orm(async_session,comment_update)
+                                             
                             print(f"dmp_issue_updates works dmp_id - {dmp_id}") if upsert_comments else print(f"comment failed dmp_id - {dmp_id}")
                             app.logger.info(upsert_comments)
                     else:
@@ -198,8 +214,10 @@ async def dmp_updates():
                             
                             created_timestamp =  PostgresQuery.get_timestamp('dmp_pr_updates','created_at','pr_id',pr_data['pr_id'])
                             pr_data['created_at'] = datetime.utcnow() if not created_timestamp else created_timestamp
+                            pr_data['created_at'] = pr_data['created_at'].replace(tzinfo=None)
+                                                       
+                            upsert_pr = await PostgresORM.upsert_pr_update(async_session,pr_data)
                             
-                            upsert_pr = PostgresQuery.upsert_data(pr_data, 'dmp_pr_updates', 'pr_id')
                             print(f"dmp_pr_updates works - dmp_id is {dmp_id}") if upsert_pr else print(f"dmp_pr_updates failed - dmp_id is {dmp_id}")
                             app.logger.info(upsert_pr)
                 else:
