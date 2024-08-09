@@ -1,7 +1,6 @@
 # app.py
 from quart import Quart
 import os,markdown2,httpx
-from db import SupabaseInterface
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from datetime import datetime,timezone
@@ -11,6 +10,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 from models import *
+from sqlalchemy.pool import NullPool
 
 
 
@@ -26,7 +26,7 @@ app = Quart(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = PostgresORM.get_postgres_uri()
 
 # Initialize Async SQLAlchemy
-engine = create_async_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False)
+engine = create_async_engine(app.config['SQLALCHEMY_DATABASE_URI'], echo=False,poolclass=NullPool)
 async_session = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
 
 scheduler = AsyncIOScheduler()

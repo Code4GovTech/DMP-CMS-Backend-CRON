@@ -2,7 +2,6 @@ import re
 import requests
 import logging
 import markdown2
-from db import SupabaseInterface
 from query import PostgresQuery,PostgresORM
 
 def parse_issue_description(issue_body):
@@ -46,7 +45,6 @@ async def handle_week_data(comment, issue_url, dmp_id, mentor_name,async_session
         if "Weekly Goals" not in plain_text_body and "Weekly Learnings" not in plain_text_body:
             return False
 
-        db = SupabaseInterface().get_instance()
 
         # find matched from issue body
         week_matches = re.findall(r'(<.*?>Week \d+<.*?>)', plain_text_body)
@@ -90,9 +88,6 @@ async def handle_week_data(comment, issue_url, dmp_id, mentor_name,async_session
                 "dmp_id": dmp_id
             }
 
-            exist = db.client.table('dmp_week_updates').select(
-                "*").eq('dmp_id', week_json['dmp_id']).eq('week', week_json['week']).execute()
-            
             
             exist = await PostgresORM.get_week_updates(async_session,week_json['dmp_id'],week_json['week'])
 

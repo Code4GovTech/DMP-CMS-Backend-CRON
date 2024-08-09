@@ -1,8 +1,5 @@
-from db import SupabaseInterface
 from sqlalchemy.future import select
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import NoResultFound
-
+import psycopg2
 from models import *
 from sqlalchemy import update
 # from app import async_session
@@ -10,8 +7,49 @@ from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import aliased
 import os
+from psycopg2.extras import RealDictCursor
 
 class PostgresQuery:
+    def get_postgres_connection():
+        
+        # Database configuration
+        DB_HOST =os.getenv('POSTGRES_DB_HOST')
+        DB_NAME =os.getenv('POSTGRES_DB_NAME')
+        DB_USER =os.getenv('POSTGRES_DB_USER')
+        DB_PASS =os.getenv('POSTGRES_DB_PASS')
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASS
+        )
+        return conn
+    
+    def postgres_query(query,params=None):        
+        try:
+            conn = PostgresQuery.get_postgres_connection()
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+            # cursor = conn.cursor()
+            if not params:
+                cursor.execute(query)
+            else:
+                cursor.execute(query,params)
+             
+            try:
+                rows = cursor.fetchall()
+            except Exception as e:
+                rows = []  #only for UPDATE method
+               
+            results_as_dicts = [dict(row) for row in rows]
+
+            cursor.close()
+            conn.close()
+            return results_as_dicts       
+        
+        except Exception as e:            
+            print(e)
+            pass
 
     def get_issue_query():
         query = """
@@ -36,7 +74,7 @@ class PostgresQuery:
                dmp_orgs.id;
         """
         
-        data = SupabaseInterface.postgres_query(query)
+        data = PostgresQuery.postgres_query(query)
         return data
         
     def get_issue_owner(name):
@@ -45,7 +83,7 @@ class PostgresQuery:
             FROM dmp_orgs
             WHERE name = %s;
         """
-        data = SupabaseInterface.postgres_query(query,(name,))
+        data = PostgresQuery.postgres_query(query)(query,(name,))
         return data
     
     def get_actual_owner_query(owner):
@@ -55,7 +93,7 @@ class PostgresQuery:
             WHERE name LIKE %s;
         """
         
-        data = SupabaseInterface.postgres_query(query,(f'%{owner}%',))
+        data = PostgresQuery.postgres_query(query)(query,(f'%{owner}%',))
         return data
     
      
@@ -65,7 +103,7 @@ class PostgresQuery:
                 SELECT * FROM dmp_issues
                 WHERE id = %s;
         """
-        data = SupabaseInterface.postgres_query(query,(issue_id,))
+        data = PostgresQuery.postgres_query(query)(query,(issue_id,))
         return data
     
     def get_all_dmp_issues():
@@ -94,7 +132,7 @@ class PostgresQuery:
 
         """
         
-        data = SupabaseInterface.postgres_query(query)
+        data = PostgresQuery.postgres_query(query)(query)
         return data
         
     def get_dmp_issue_updates(dmp_issue_id):
@@ -103,7 +141,7 @@ class PostgresQuery:
                 SELECT * FROM dmp_issue_updates
                 WHERE dmp_id = %s;
         """
-        data = SupabaseInterface.postgres_query(query,(dmp_issue_id,))
+        data = PostgresQuery.postgres_query(query)(query,(dmp_issue_id,))
         return data
         
     
@@ -113,12 +151,12 @@ class PostgresQuery:
                 SELECT * FROM dmp_pr_updates
                 WHERE dmp_id = %s;
         """
-        data = SupabaseInterface.postgres_query(query,(dmp_issue_id,))
+        data = PostgresQuery.postgres_query(query)(query,(dmp_issue_id,))
         return data
     
     def postgres_query_insert(query, params=None):
         try:
-            conn = SupabaseInterface.get_postgres_connection()
+            conn = PostgresQuery.get_postgres_connection()
             from psycopg2.extras import RealDictCursor
 
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -218,7 +256,7 @@ class PostgresQuery:
                 SELECT {col_name} FROM {table_name}
                 WHERE {col} = %s;
             """
-            data = SupabaseInterface.postgres_query(query, (value,))
+            data = PostgresQuery.postgres_query(query)(query, (value,))
             
             if data:
                 return data[0][col_name]
@@ -235,7 +273,7 @@ class PostgresQuery:
                 SELECT * FROM dmp_week_updates
                 WHERE dmp_id = %s AND week = %s;
             """
-            data = SupabaseInterface.postgres_query(query, (dmp_id, week))
+            data = PostgresQuery.postgres_query(query)(query, (dmp_id, week))
             
             if data:
                 return data
@@ -490,3 +528,5 @@ class PostgresORM:
         except Exception as e:
             print(e)
             return False
+        
+    
