@@ -180,7 +180,7 @@ async def dmp_updates():
                             comment_update = define_issue_update(val, dmp_id=dmp_id)
                             app.logger.info('Comment from remote: ', comment_update)
                             
-                            #get created_at                            
+                            #get created_at                 
                             created_timestamp =  PostgresQuery.get_timestamp('dmp_issue_updates','created_at','comment_id',comment_update['comment_id'])
                             comment_update['created_at'] = datetime.utcnow() if not created_timestamp else created_timestamp
                             comment_update['comment_updated_at'] = datetime.utcnow().replace(tzinfo=None)

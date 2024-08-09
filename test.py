@@ -1,6 +1,5 @@
 import httpx, logging, os, unittest,random
 from app import app
-from db import SupabaseInterface  
 from app import define_issue_description_update, define_pr_update, define_issue_update, async_session
 from query import PostgresORM
 from sqlalchemy.orm import aliased
@@ -32,7 +31,6 @@ class TestDMPUpdates(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.app = app
         self.client = self.app.test_client()
-        self.db = SupabaseInterface().get_instance()
         self.issue_response = None
         self.comments_response = None
         self.pr_response = None
@@ -78,6 +76,8 @@ class TestDMPUpdates(unittest.IsolatedAsyncioTestCase):
         dmp_tickets = data
         if not dmp_tickets:
             self.skipTest("No dmp_tickets found")
+            
+        self.dmp_tickets = dmp_tickets
             
         dmp = dmp_tickets[random.randint(0,len(dmp_tickets)-1)]
         self.dmp_id = dmp['id']
@@ -154,7 +154,7 @@ class TestDMPUpdates(unittest.IsolatedAsyncioTestCase):
                 
     def test_get_dmp_issues(self):
         # Fetch dmp issues from the database
-        dmp_tickets = self.db.get_dmp_issues()
+        dmp_tickets = self.dmp_tickets
         self.assertTrue(len(dmp_tickets) > 0, "No dmp_tickets found")
 
         # Call the function to test
@@ -173,7 +173,7 @@ class TestDMPUpdates(unittest.IsolatedAsyncioTestCase):
     
     def test_get_dmp_issues(self):
         # Fetch dmp issues from the database
-        dmp_tickets = self.db.get_dmp_issues()
+        dmp_tickets = self.dmp_tickets
         self.assertTrue(len(dmp_tickets) > 0, "No dmp_tickets found")
    
    

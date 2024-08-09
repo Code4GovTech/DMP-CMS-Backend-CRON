@@ -256,7 +256,7 @@ class PostgresQuery:
                 SELECT {col_name} FROM {table_name}
                 WHERE {col} = %s;
             """
-            data = PostgresQuery.postgres_query(query)(query, (value,))
+            data = PostgresQuery.postgres_query(query, (value,))
             
             if data:
                 return data[0][col_name]
