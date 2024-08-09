@@ -212,7 +212,7 @@ async def dmp_updates():
                         if (pr_created_at >= TARGET_DATE):
                             pr_data = define_pr_update(pr_val, dmp_id)
                             
-                            created_timestamp =  PostgresQuery.get_timestamp('dmp_pr_updates','created_at','pr_id',pr_data['pr_id'])
+                            created_timestamp =  await PostgresORM.get_timestamp(async_session,Prupdates,'created_at','pr_id',pr_data['pr_id'])
                             pr_data['created_at'] = datetime.utcnow() if not created_timestamp else created_timestamp
                             pr_data['created_at'] = pr_data['created_at'].replace(tzinfo=None)
                                                        
