@@ -66,9 +66,15 @@ jobs:
       SUPABASE_KEY: ${{ secrets[format('APP_{0}_SUPABASE_KEY', needs.set_vars.outputs.APP_ENV)] }}
       SUPABASE_URL: ${{ vars[format('APP_{0}_SUPABASE_URL', needs.set_vars.outputs.APP_ENV)] }}
       SCHEDULER_DELAY_IN_MINS: ${{ vars[format('APP_{0}_SCHEDULER_DELAY_IN_MINS', needs.set_vars.outputs.APP_ENV)] }}
+      POSTGRES_DB_HOST: ${{ secrets[format('APP_{0}_POSTGRES_DB_HOST', needs.set_vars.outputs.APP_ENV)] }}
+      POSTGRES_DB_NAME: ${{ secrets[format('APP_{0}_POSTGRES_DB_NAME', needs.set_vars.outputs.APP_ENV)] }}
+      POSTGRES_DB_USER: ${{ secrets[format('APP_{0}_POSTGRES_DB_USER', needs.set_vars.outputs.APP_ENV)] }}
+      POSTGRES_DB_PASS: ${{ secrets[format('APP_{0}_POSTGRES_DB_PASS', needs.set_vars.outputs.APP_ENV)] }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
 
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
@@ -87,6 +93,10 @@ jobs:
           echo "SUPABASE_URL=${SUPABASE_URL}" >> .env
           echo "SUPABASE_KEY=${SUPABASE_KEY}" >> .env
           echo "SCHEDULER_DELAY_IN_MINS=${SCHEDULER_DELAY_IN_MINS}" >> .env
+          echo "POSTGRES_DB_HOST=${POSTGRES_DB_HOST}" >> .env
+          echo "POSTGRES_DB_NAME=${POSTGRES_DB_NAME}" >> .env
+          echo "POSTGRES_DB_USER=${POSTGRES_DB_USER}" >> .env
+          echo "POSTGRES_DB_PASS=${POSTGRES_DB_PASS}" >> .env
           
           mv .env ${{ env.DOT_ENV_FILE_NAME }}
 
