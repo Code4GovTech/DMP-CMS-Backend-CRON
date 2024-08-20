@@ -2,8 +2,7 @@ import re
 import requests
 import logging
 import markdown2
-from db import SupabaseInterface
-
+from query import PostgresORM
 
 def parse_issue_description(issue_body):
     # Description is everything before goals.
@@ -33,7 +32,7 @@ def parse_issue_description(issue_body):
     }
 
 
-def handle_week_data(comment, issue_url, dmp_id, mentor_name):
+async def handle_week_data(comment, issue_url, dmp_id, mentor_name,async_session):
     try:
         # Get writer of comment and if it is not the selected mentor, return right away
         # writter = "@"+comment['user']['login']
@@ -46,7 +45,6 @@ def handle_week_data(comment, issue_url, dmp_id, mentor_name):
         if "Weekly Goals" not in plain_text_body and "Weekly Learnings" not in plain_text_body:
             return False
 
-        db = SupabaseInterface().get_instance()
 
         # find matched from issue body
         week_matches = re.findall(r'(<.*?>Week \d+<.*?>)', plain_text_body)
@@ -90,20 +88,21 @@ def handle_week_data(comment, issue_url, dmp_id, mentor_name):
                 "dmp_id": dmp_id
             }
 
-            exist = db.client.table('dmp_week_updates').select(
-                "*").eq('dmp_id', week_json['dmp_id']).eq('week', week_json['week']).execute()
+            
+            exist = await PostgresORM.get_week_updates(async_session,week_json['dmp_id'],week_json['week'])
 
-            if not exist.data:
-                add_data = db.add_data(week_json, 'dmp_week_updates')
+            if not exist:
+                add_data = await PostgresORM.insert_dmp_week_update(async_session,week_json)
+                print(f"Week data added {week_json['dmp_id']}-{week_json['week']}") if add_data else None
             else:
-                update_data = db.multiple_update_data(week_json, 'dmp_week_updates', [
-                                                      'dmp_id', 'week'], [week_json['dmp_id'], week_json['week']])
+                update_data = await PostgresORM.update_dmp_week_update(async_session,week_json)
+                print(f"Week data updated {week_json['dmp_id']}-{week_json['week']}") if update_data else None
 
             week_json = {}
 
         return True
 
     except Exception as e:
-        print(e)
+        print(f"Error in week data updates {dmp_id}")
         logging.info(f"{e} - find_week_data")
         return False
