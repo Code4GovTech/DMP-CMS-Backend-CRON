@@ -224,9 +224,11 @@ async def dmp_updates():
                     print('issue response ', issue_response)
                     app.logger.error("PR API failed: " +
                                      str(issue_response.status_code) + " for dmp_id: "+str(dmp_id))
+        print(f"last run at - {datetime.utcnow()}")
         return "success"
     except Exception as e:
         print(e)
+        print(f"last run with error - {datetime.utcnow()}")
         return "Server Error"
 
 
