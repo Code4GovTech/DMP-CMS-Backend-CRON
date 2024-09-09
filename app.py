@@ -113,7 +113,7 @@ async def dmp_updates():
             print('processing dmp ids ', dmp_id)
             issue_number = dmp['issue_number']
             repo = dmp['repo']
-            owner = dmp['dmp_orgs']['repo_owner']
+            owner = dmp['repo_owner']
 
             app.logger.info("DMP_ID: "+str(dmp_id))
 
