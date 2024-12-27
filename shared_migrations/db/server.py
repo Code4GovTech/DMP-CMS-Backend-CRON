@@ -16,31 +16,8 @@ from sqlalchemy import cast, String ,and_
 from sqlalchemy.dialects.postgresql import ARRAY
 from .models import Issues, CommunityOrgs, PointSystem, PrHistory
 
-# dotenv.load_dotenv(".env")
 
-
-# def get_postgres_uri():
-#     DB_HOST = os.getenv('POSTGRES_DB_HOST')
-#     DB_NAME = os.getenv('POSTGRES_DB_NAME')
-#     DB_USER = os.getenv('POSTGRES_DB_USER')
-#     DB_PASS = os.getenv('POSTGRES_DB_PASS')
-
-#     # DB_URL = os.getenv('DATABASE_URL')
-#     # print('db')
-#     return f'postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}'
-
-    
 class ServerQueries:
-    
-    # def __init__(self):
-    #     DATABASE_URL = get_postgres_uri()         
-    #     # Initialize Async SQLAlchemy
-    #     engine = create_async_engine(DATABASE_URL, echo=False,poolclass=NullPool)
-    #     async_session = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
-    #     self.session = async_session
-        
-    # def get_instance():
-    #     return PostgresORM()
             
     def convert_dict(self,data):
         try:
@@ -438,9 +415,6 @@ class ServerQueries:
             async with self.session() as session:
                 # Dynamically get the ORM class for the table
                 table = self.get_class_by_tablename(table_name)
-                
-                # Build and execute the query to check if the issue_id already exists
-                # stmt = select(table).where(table.issue_id == data['issue_id'])
 
                 stmt = insert(table).values(
                     link=data['link'],
@@ -461,9 +435,7 @@ class ServerQueries:
                 result = await session.execute(stmt)
             
                 await session.commit()
-                    
-                # inserted_record = await result.fetchone() 
-                # print("inserted result ", inserted_record)
+
                 return result
                     
         except Exception as e:
@@ -625,7 +597,6 @@ class ServerQueries:
 
             for pr in prData:
                 data = {
-                    # "api_url":data["url"],
                     "html_url":pr["html_url"],
                     "pr_id":pr["pr_id"],
                     "raised_by":pr["raised_by"],

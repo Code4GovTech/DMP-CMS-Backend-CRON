@@ -1,28 +1,8 @@
-import os
-
-# from discord import Member
-from dotenv import load_dotenv            
 from sqlalchemy import create_engine,select,desc,update,delete
-from sqlalchemy.orm import sessionmaker
 from .models import *
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-
-# load_dotenv()
 
 class DiscordBotQueries:
-    # def __init__(self):
-    #     DB_HOST = os.getenv('POSTGRES_DB_HOST')
-    #     DB_NAME = os.getenv('POSTGRES_DB_NAME')
-    #     DB_USER = os.getenv('POSTGRES_DB_USER')
-    #     DB_PASS = os.getenv('POSTGRES_DB_PASS')
-        
-    #     engine = create_async_engine(f'postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}')
-    #     async_session = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
-    #     self.session = async_session
-    
-    # def get_instance():
-    #     return PostgresClient()
 
     def convert_dict(self,data):
         try:
@@ -220,8 +200,6 @@ class DiscordBotQueries:
                 stmt = select(ContributorsDiscord).where(ContributorsDiscord.discord_id == contributor.id)
                 result = await session.execute(stmt)
                 existing_record = result.scalars().first()
-
-                # existing_record = self.session.query(table_class).filter_by(discord_id=contributor.id).first()
 
                 if existing_record:
                     stmt = (

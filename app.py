@@ -14,9 +14,6 @@ from datetime import datetime
 from shared_migrations.db.models import *
 from sqlalchemy.pool import NullPool
 
-
-# Random comment
-
 # Load environment variables from .env file
 load_dotenv()
 delay_mins: str = os.getenv("SCHEDULER_DELAY_IN_MINS")
@@ -169,7 +166,7 @@ async def dmp_updates():
                         if comments_array == [] or len(comments_array) == 0:
                             break
                         for val in comments_response.json():
-                            # Handle if any of the comments are week data            
+                            # Handle if any of the comments are week data
                             plain_text_body = markdown2.markdown(val['body'])
                             if "Weekly Goals" in plain_text_body and not week_update_status:
                                 week_update_status = await handle_week_data(val, dmp['issue_url'], dmp_id,

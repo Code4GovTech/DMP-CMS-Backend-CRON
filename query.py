@@ -1,12 +1,9 @@
 from sqlalchemy.future import select
-from models import *
 from sqlalchemy import update
-# from app import async_session
 from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime
 from sqlalchemy.orm import aliased
 import os
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
 
 

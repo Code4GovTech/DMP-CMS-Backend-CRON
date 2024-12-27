@@ -1,9 +1,5 @@
 from .models import *
 from sqlalchemy import func
-import os
-from dotenv import load_dotenv
-# from flask_sqlalchemy import SQLAlchemy
-import sqlalchemy
 from sqlalchemy.future import select
 
 
