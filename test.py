@@ -4,7 +4,7 @@ from app import define_issue_description_update, define_pr_update, define_issue_
 from query import PostgresORM
 from sqlalchemy.orm import aliased
 from sqlalchemy.future import select
-from models import *
+from shared_migrations.db.models import *
 
 # Suppress asyncio debug messages
 logging.getLogger('asyncio').setLevel(logging.CRITICAL)
@@ -38,12 +38,12 @@ class TestDMPUpdates(unittest.IsolatedAsyncioTestCase):
         # CHANGE BELOW DB CALL WHEN CHANGES MADE IN PostgresORM.get_all_dmp_issues()        
         async with async_session() as session:
             # Alias for the DmpOrg table to use in the JSON_BUILD_OBJECT
-            dmp_org_alias = aliased(DmpOrg)
+            dmp_org_alias = aliased(DmpOrgs)
 
             # Build the query
             query = (
                 select(
-                    DmpIssue,
+                    DmpIssues,
                     func.json_build_object(
                         'created_at', dmp_org_alias.created_at,
                         'description', dmp_org_alias.description,
@@ -53,9 +53,9 @@ class TestDMPUpdates(unittest.IsolatedAsyncioTestCase):
                         'repo_owner', dmp_org_alias.repo_owner
                     ).label('dmp_orgs')
                 )
-                .outerjoin(dmp_org_alias, DmpIssue.org_id == dmp_org_alias.id)
-                .filter(DmpIssue.org_id.isnot(None))
-                .order_by(DmpIssue.id)
+                .outerjoin(dmp_org_alias, DmpIssues.org_id == dmp_org_alias.id)
+                .filter(DmpIssues.org_id.isnot(None))
+                .order_by(DmpIssues.id)
             )
             
             # Execute the query and fetch results

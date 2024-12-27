@@ -1,21 +1,13 @@
 from sqlalchemy.future import select
+from .models import *
 from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime
 from sqlalchemy.orm import aliased
-import os
 from sqlalchemy.exc import NoResultFound
 
 
-class PostgresORM:
-    
-    def get_postgres_uri():
-        DB_HOST = os.getenv('POSTGRES_DB_HOST')
-        DB_NAME = os.getenv('POSTGRES_DB_NAME')
-        DB_USER = os.getenv('POSTGRES_DB_USER')
-        DB_PASS = os.getenv('POSTGRES_DB_PASS')
-        
-        return f'postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}'
+class DmpCronQueries:
     
     async def get_timestamp(async_session, model, col_name: str, col: str, value):
         try:
@@ -37,12 +29,12 @@ class PostgresORM:
         try:
             async with async_session() as session:
                 # Alias for the DmpOrg table to use in the JSON_BUILD_OBJECT
-                dmp_org_alias = aliased(DmpOrg)
+                dmp_org_alias = aliased(DmpOrgs)
 
                 # Build the query
                 query = (
                     select(
-                        DmpIssue,
+                        DmpIssues,
                         func.json_build_object(
                             'created_at', dmp_org_alias.created_at,
                             'description', dmp_org_alias.description,
@@ -52,9 +44,9 @@ class PostgresORM:
                             'repo_owner', dmp_org_alias.repo_owner
                         ).label('dmp_orgs')
                     )
-                    .outerjoin(dmp_org_alias, DmpIssue.org_id == dmp_org_alias.id)
-                    .filter(DmpIssue.org_id.isnot(None))
-                    .order_by(DmpIssue.id)
+                    .outerjoin(dmp_org_alias, DmpIssues.org_id == dmp_org_alias.id)
+                    .filter(DmpIssues.org_id.isnot(None))
+                    .order_by(DmpIssues.id)
                 )
                 
                 # Execute the query and fetch results
@@ -67,9 +59,9 @@ class PostgresORM:
                     issue_dict = row._asdict()  # Convert row to dict
                     dmp_orgs = issue_dict.pop('dmp_orgs')  # Extract JSON object from row
                     issue_dict['dmp_orgs'] = dmp_orgs
-                    issue_dict.update(issue_dict['DmpIssue'].to_dict())
+                    issue_dict.update(issue_dict['DmpIssues'].to_dict())
                     # Add JSON object back to dict
-                    del issue_dict['DmpIssue']
+                    del issue_dict['DmpIssues']
                     data.append(issue_dict)
                     
             return data
@@ -84,8 +76,8 @@ class PostgresORM:
                 async with session.begin():
                     # Build the update query
                     query = (
-                        update(DmpIssue)
-                        .where(DmpIssue.id == issue_id)
+                        update(DmpIssues)
+                        .where(DmpIssues.id == issue_id)
                         .values(**update_data)
                     )
                     
@@ -105,7 +97,7 @@ class PostgresORM:
                 async with session.begin():
                    
                     # Define the insert statement
-                    stmt = insert(DmpIssueUpdate).values(**update_data)
+                    stmt = insert(DmpIssueUpdates).values(**update_data)
 
                     # Define the update statement in case of conflict
                     stmt = stmt.on_conflict_do_update(
@@ -142,7 +134,7 @@ class PostgresORM:
                     pr_update_data['closed_at'] = datetime.fromisoformat(pr_update_data['closed_at']).replace(tzinfo=None) if pr_update_data['closed_at'] else None
 
                     # Prepare the insert statement
-                    stmt = insert(Prupdates).values(**pr_update_data)
+                    stmt = insert(DmpPrUpdates).values(**pr_update_data)
 
                     # Prepare the conflict resolution strategy
                     stmt = stmt.on_conflict_do_update(
@@ -176,10 +168,10 @@ class PostgresORM:
                 async with session.begin():
                     # Define the filter conditions
                     stmt = (
-                        select(DmpWeekUpdate)
+                        select(DmpWeekUpdates)
                         .where(
-                            DmpWeekUpdate.week == update_data['week'],
-                            DmpWeekUpdate.dmp_id == update_data['dmp_id']
+                            DmpWeekUpdates.week == update_data['week'],
+                            DmpWeekUpdates.dmp_id == update_data['dmp_id']
                         )
                     )
 
@@ -205,9 +197,9 @@ class PostgresORM:
         try:
             async with async_session() as session:
                 # Build the ORM query
-                stmt = select(DmpWeekUpdate).where(
-                    DmpWeekUpdate.dmp_id == dmp_id,
-                    DmpWeekUpdate.week == week
+                stmt = select(DmpWeekUpdates).where(
+                    DmpWeekUpdates.dmp_id == dmp_id,
+                    DmpWeekUpdates.week == week
                 )
                 # Execute the query
                 result = await session.execute(stmt)
@@ -228,7 +220,7 @@ class PostgresORM:
             async with async_session() as session:
                 async with session.begin():
                     # Define the insert statement
-                    stmt = insert(DmpWeekUpdate).values(**update_data)
+                    stmt = insert(DmpWeekUpdates).values(**update_data)
 
                     # Execute the statement
                     await session.execute(stmt)

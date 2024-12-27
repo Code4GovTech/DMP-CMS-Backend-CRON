@@ -2,7 +2,7 @@ import re
 import requests
 import logging
 import markdown2
-from query import PostgresORM
+from shared_migrations.db.dmp_cron import DmpCronQueries
 
 def parse_issue_description(issue_body):
     # Description is everything before goals.
@@ -35,9 +35,6 @@ def parse_issue_description(issue_body):
 async def handle_week_data(comment, issue_url, dmp_id, mentor_name,async_session):
     try:
         # Get writer of comment and if it is not the selected mentor, return right away
-        # writter = "@"+comment['user']['login']
-        # if writter != mentor_name:
-        #     return False
 
         plain_text_body = markdown2.markdown(comment['body'])
 
@@ -89,13 +86,13 @@ async def handle_week_data(comment, issue_url, dmp_id, mentor_name,async_session
             }
 
             
-            exist = await PostgresORM.get_week_updates(async_session,week_json['dmp_id'],week_json['week'])
+            exist = await DmpCronQueries.get_week_updates(async_session,week_json['dmp_id'],week_json['week'])
 
             if not exist:
-                add_data = await PostgresORM.insert_dmp_week_update(async_session,week_json)
+                add_data = await DmpCronQueries.insert_dmp_week_update(async_session,week_json)
                 print(f"Week data added {week_json['dmp_id']}-{week_json['week']}") if add_data else None
             else:
-                update_data = await PostgresORM.update_dmp_week_update(async_session,week_json)
+                update_data = await DmpCronQueries.update_dmp_week_update(async_session,week_json)
                 print(f"Week data updated {week_json['dmp_id']}-{week_json['week']}") if update_data else None
 
             week_json = {}
