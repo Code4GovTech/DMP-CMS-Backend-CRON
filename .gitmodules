@@ -1,3 +1,0 @@
-[submodule "shared_migration"]
-	path = shared_migration
-	url = https://github.com/Code4GovTech/shared-models-migrations.git
