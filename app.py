@@ -105,6 +105,8 @@ async def dmp_updates():
         dmp_tickets = await DmpCronQueries.get_all_dmp_issues(async_session)
 
         for dmp in dmp_tickets:
+            if dmp.get('year') != 2025:
+                continue
             dmp_id = dmp['id']
             print('processing dmp ids ', dmp_id)
             issue_number = dmp['issue_number']
@@ -250,4 +252,4 @@ async def start_scheduler():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port=8080)
